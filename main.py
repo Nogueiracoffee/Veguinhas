@@ -50,7 +50,7 @@ async def inventario(ctx):
 
 # Comando para comprar Ticket Dourado
 @bot.command()
-async def loja(ctx, quantidade: int):
+async def ticket(ctx, quantidade: int):
     user_id = str(ctx.author.id)
     preco = quantidade * 5
     if saldo_usuarios.get(user_id, 0) < preco:
