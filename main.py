@@ -50,12 +50,19 @@ async def on_ready():
 
 # Comando para exibir inventário
 @bot.command()
-async def inventario(ctx):
+async def perfil(ctx):
     user_id = str(ctx.author.id)
     saldo = saldo_usuarios.get(user_id, 0)
     tickets = tickets_usuarios.get(user_id, 0)
     cargo = ctx.author.top_role.name
-    await ctx.send(f"📜 **Inventário de {ctx.author.display_name}**\n🏷️ Cargo: {cargo}\n🪙 Escoltes: {saldo}\n🎟️ Tickets Dourados: {tickets}")
+    await ctx.send(
+    f"📜 **Inventário de {ctx.author.display_name}**\n"
+    f"━━━━━━━━━━━━━━━━━━━\n"
+    f"🏷️ **Cargo:** {cargo}\n"
+    f"🪙 **Escoltes:** {saldo}\n"
+    f"🎟️ **Tickets:** {tickets}\n"
+    f"━━━━━━━━━━━━━━━━━━━"
+)
 
 
 # Comando para comprar Ticket Dourado
@@ -102,7 +109,7 @@ async def café(ctx):
     user_id = str(ctx.author.id)
     cafes_por_usuario[user_id] = cafes_por_usuario.get(user_id, 0) + 1
     total_cafes = cafes_por_usuario[user_id]
-    await ctx.send(f"{ctx.author.mention} já tomou {total_cafes} ☕")
+    await ctx.send(f"{ctx.author.mention} já tomou {total_cafes}° ☕")
 
 
 # Comando para exibir saldo
@@ -110,7 +117,9 @@ async def café(ctx):
 async def saldo(ctx):
     user_id = str(ctx.author.id)
     saldo = saldo_usuarios.get(user_id, 0)
-    await ctx.send(f"{ctx.author.mention}, Saldo em Escolte: {saldo}  🪙")
+    
+    msg = await ctx.send(f"{ctx.author.mention}, Saldo em Escolte: **{saldo}** 🪙 (Esta mensagem será apagada em 10s)")
+    await msg.delete(delay=10)  # Apaga a mensagem depois de 10 segundos
 
 
 # Comando para adicionar saldo manualmente (admin)
