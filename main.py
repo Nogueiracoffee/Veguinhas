@@ -22,23 +22,21 @@ ARQUIVO_SALDO = "saldo_usuarios.txt"
 
 # Funções para carregar e salvar saldos
 def carregar_saldo():
-    global saldo_usuarios, tickets_usuarios
+    global saldo_usuarios
 
     if os.path.exists(ARQUIVO_SALDO):
         try:
             with open(ARQUIVO_SALDO, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 saldo_usuarios = data.get('saldos', {})
-                tickets_usuarios = data.get('tickets', {})
         except (json.JSONDecodeError, FileNotFoundError):
             print("Erro ao carregar o arquivo de saldo. Criando novo arquivo.")
             saldo_usuarios = {}
-            tickets_usuarios = {}
-            salvar_saldo()  # Garante que um arquivo válido seja salvo
+            salvar_saldo()
 
 def salvar_saldo():
     with open(ARQUIVO_SALDO, "w", encoding="utf-8") as f:
-        json.dump({'saldos': saldo_usuarios, 'tickets': tickets_usuarios}, f, indent=4)
+        json.dump({'saldos': saldo_usuarios}, f, indent=4)
 
 
 # Evento quando o bot estiver pronto
@@ -48,54 +46,19 @@ async def on_ready():
     print(f'Bot conectado como {bot.user}')
 
 
-# Comando para exibir inventário
-@bot.command()
-async def perfil(ctx):
-    user_id = str(ctx.author.id)
-    saldo = saldo_usuarios.get(user_id, 0)
-    tickets = tickets_usuarios.get(user_id, 0)
-    cargo = ctx.author.top_role.name
-    await ctx.send(
+    # Comando para exibir inventário
+    @bot.command()
+    async def perfil(ctx):
+        user_id = str(ctx.author.id)
+        saldo = saldo_usuarios.get(user_id, 0)
+        cargo = ctx.author.top_role.name
+        await ctx.send(
     f"📜 **Inventário de {ctx.author.display_name}**\n"
     f"━━━━━━━━━━━━━━━━━━━\n"
     f"🏷️ **Cargo:** {cargo}\n"
     f"🪙 **Escoltes:** {saldo}\n"
-    f"🎟️ **Tickets:** {tickets}\n"
     f"━━━━━━━━━━━━━━━━━━━"
 )
-
-
-# Comando para comprar Ticket Dourado
-@bot.command()
-async def ticket(ctx, quantidade: int):
-    user_id = str(ctx.author.id)
-    preco = quantidade * 5
-    if saldo_usuarios.get(user_id, 0) < preco:
-        await ctx.send("❌ Saldo insuficiente para comprar Tickets Dourados.")
-        return
-    saldo_usuarios[user_id] -= preco
-    tickets_usuarios[user_id] = tickets_usuarios.get(user_id, 0) + quantidade
-    salvar_saldo()
-    await ctx.send(f"✅ Você comprou {quantidade} 🎟️ Tickets Dourados!")
-
-
-# Comando para apostar Tickets Dourados
-@bot.command()
-async def apostar(ctx, membro: discord.Member, quantidade: int):
-    apostador = str(ctx.author.id)
-    desafiado = str(membro.id)
-
-    if quantidade <= 0 or tickets_usuarios.get(apostador, 0) < quantidade or tickets_usuarios.get(desafiado, 0) < quantidade:
-        await ctx.send(f"❌ Ambos precisam ter ao menos {quantidade} Tickets Dourados.")
-        return
-
-    vencedor = random.choice([ctx.author, membro])
-    tickets_usuarios[apostador] -= quantidade
-    tickets_usuarios[desafiado] -= quantidade
-    tickets_usuarios[str(vencedor.id)] = tickets_usuarios.get(str(vencedor.id), 0) + (quantidade * 2)
-    salvar_saldo()
-    await ctx.send(f"🎉 {vencedor.mention} venceu a aposta de {quantidade} Tickets Dourados! 🏆")
-
 
 # Comando de teste
 @bot.command()
@@ -110,16 +73,6 @@ async def café(ctx):
     cafes_por_usuario[user_id] = cafes_por_usuario.get(user_id, 0) + 1
     total_cafes = cafes_por_usuario[user_id]
     await ctx.send(f"{ctx.author.mention} já tomou {total_cafes}° ☕")
-
-
-# Comando para exibir saldo
-@bot.command()
-async def saldo(ctx):
-    user_id = str(ctx.author.id)
-    saldo = saldo_usuarios.get(user_id, 0)
-    
-    msg = await ctx.send(f"{ctx.author.mention}, Saldo em Escolte: **{saldo}** 🪙 (Esta mensagem será apagada em 10s)")
-    await msg.delete(delay=10)  # Apaga a mensagem depois de 10 segundos
 
 
 # Comando para adicionar saldo manualmente (admin)
@@ -166,8 +119,9 @@ async def rank(ctx):
     await ctx.send(mensagem)
 
 
-# Comando para o bot repetir uma mensagem
+# Comando para o bot repetir uma mensagem (somente admin)
 @bot.command()
+@commands.has_permissions(administrator=True)
 async def falar(ctx, *, mensagem):
     await ctx.message.delete()
     await ctx.send(mensagem)
