@@ -16,9 +16,13 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 # Armazenamento de cafés e saldo
 cafes_por_usuario = {}
 saldo_usuarios = {}
-tickets_usuarios = {}
 ARQUIVO_SALDO = "saldo_usuarios.txt"
 
+# Variáveis do jogo
+jogo_ativo = False
+participantes = []
+impostor = None
+eliminados = []
 
 # Funções para carregar e salvar saldos
 def carregar_saldo():
@@ -100,23 +104,86 @@ async def transferir(ctx, membro: discord.Member, quantidade: int):
     salvar_saldo()
 
     await ctx.send(f"{ctx.author.mention} Transferiu {quantidade} Escoltes para {membro.mention}! 💰")
-
-
-# Comando para exibir ranking de saldo
+# Comando para iniciar o jogo
 @bot.command()
-async def rank(ctx):
-    if not saldo_usuarios:
-        await ctx.send("Nenhum usuário tem saldo registrado ainda.")
+@commands.has_permissions(administrator=True)
+async def iniciar(ctx):
+    global jogo_ativo, participantes, impostor, eliminados
+
+    if jogo_ativo:
+        await ctx.send("O jogo já está em andamento!")
         return
 
-    ranking_lista = sorted(saldo_usuarios.items(), key=lambda x: x[1], reverse=True)
-    mensagem = " **Ranking de Escoltes** 🪙\n"
+    # Limpar dados do jogo
+    participantes = []
+    impostor = None
+    eliminados = []
 
-    for i, (user_id, saldo) in enumerate(ranking_lista[:10], start=1):  # Mostra os top 10
-        membro = await ctx.guild.fetch_member(int(user_id))
-        mensagem += f"**{i}. {membro.display_name}** {saldo}  🪙\n"
+    # Obter todos os membros com o cargo @🏆 Rank
+    cargo_rank = get(ctx.guild.roles, name="🏆 Rank")  # Ajuste o nome conforme necessário
+    if cargo_rank is None:
+        await ctx.send("Cargo @🏆 Rank não encontrado!")
+        return
 
-    await ctx.send(mensagem)
+    # Adicionar todos os membros com o cargo @🏆 Rank à lista de participantes
+    for membro in ctx.guild.members:
+        if cargo_rank in membro.roles and not membro.bot:
+            participantes.append(str(membro.id))
+
+    if len(participantes) < 2:
+        await ctx.send("Precisa de pelo menos 2 jogadores com o cargo @🏆 Rank para iniciar o jogo.")
+        return
+
+    # Escolher aleatoriamente o impostor entre os participantes
+    impostor = random.choice(participantes)
+
+    # Enviar mensagem privada para o impostor avisando sobre sua identidade
+    impostor_membro = ctx.guild.get_member(int(impostor))
+    await impostor_membro.send(f"Você é o **IMPOSTOR**! Seu objetivo é eliminar os outros jogadores sem ser descoberto. Boa sorte!")
+
+    # Enviar mensagem pública informando que o jogo começou
+    jogo_ativo = True
+    await ctx.send(f"O jogo começou! O impostor é... alguém, mas não direi quem! O objetivo dos tripulantes é descobrir quem é o impostor!")
+
+# Comando para o impostor eliminar alguém
+@bot.command()
+async def eliminar(ctx, membro: discord.Member):
+    global impostor
+    if not jogo_ativo:
+        await ctx.send("O jogo não está ativo!")
+        return
+
+    if str(ctx.author.id) != impostor:
+        await ctx.send("Você não é o impostor e não pode eliminar ninguém!")
+        return
+
+    if str(membro.id) not in participantes:
+        await ctx.send("Este jogador não está no jogo!")
+        return
+
+    # Eliminar jogador
+    participantes.remove(str(membro.id))
+    eliminados.append(str(membro.id))
+    await ctx.send(f"{membro.display_name} foi eliminado pelo impostor!")
+
+# Comando para acusar o impostor
+@bot.command()
+async def acusar(ctx, membro: discord.Member):
+    global impostor
+    user_id = str(ctx.author.id)
+    if user_id in eliminados:
+        await ctx.send(f"{ctx.author.display_name}, você está eliminado do jogo!")
+        return
+
+    if str(membro.id) == impostor:
+        saldo_usuarios[user_id] -= 1  # Custa 1 escolte para acusar
+        saldo_usuarios[impostor] -= 1  # Impostor perde 1 escolte se for acusado corretamente
+        salvar_saldo()
+        await ctx.send(f"{ctx.author.display_name} acusou corretamente o impostor! {membro.display_name} perdeu 1 escolte!")
+    else:
+        saldo_usuarios[user_id] -= 1  # Custa 1 escolte para acusar
+        salvar_saldo()
+        await ctx.send(f"{ctx.author.display_name} acusou {membro.display_name} de ser o impostor, mas errou! Você perdeu 1 escolte!")
 
 
 # Comando para o bot repetir uma mensagem (somente admin)
