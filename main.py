@@ -121,7 +121,7 @@ async def iniciar(ctx):
     eliminados = []
 
     # Obter todos os membros com o cargo @🏆 Rank
-    cargo_rank = get(ctx.guild.roles, name="🏆 Rank")  # Ajuste o nome conforme necessário
+    cargo_rank = ctx.guild.get_role(1353419796498219058)  # Ajuste o nome conforme necessário
     if cargo_rank is None:
         await ctx.send("Cargo @🏆 Rank não encontrado!")
         return
