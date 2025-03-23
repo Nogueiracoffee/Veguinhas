@@ -63,6 +63,31 @@ async def on_ready():
             f"━━━━━━━━━━━━━━━━━━━"
         )
 
+# Comando para adicionar saldo manualmente (admin)
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def addsaldo(ctx, membro: discord.Member, quantidade: int):
+    user_id = str(membro.id)
+    saldo_usuarios[user_id] = saldo_usuarios.get(user_id, 0) + quantidade
+    salvar_saldo()
+    await ctx.send(f"{membro.mention} Recebeu {quantidade} Escoltes! Saldo atual: {saldo_usuarios[user_id]} 🪙")
+
+
+# Comando para transferir saldo entre usuários
+@bot.command()
+async def transferir(ctx, membro: discord.Member, quantidade: int):
+    sender_id = str(ctx.author.id)
+    receiver_id = str(membro.id)
+
+    if sender_id not in saldo_usuarios or saldo_usuarios[sender_id] < quantidade:
+        await ctx.send(f"{ctx.author.mention}, Você não tem saldo suficiente para transferir!")
+        return
+
+    saldo_usuarios[sender_id] -= quantidade
+    saldo_usuarios[receiver_id] = saldo_usuarios.get(receiver_id, 0) + quantidade
+    salvar_saldo()
+
+    await ctx.send(f"{ctx.author.mention} Transferiu {quantidade} Escoltes para {membro.mention}! 💰")
 
 # Comando para iniciar o jogo
 @bot.command()
@@ -79,13 +104,13 @@ async def iniciar(ctx):
     impostor = None
     eliminados = []
 
-    # Obter todos os membros com o cargo @🏆 Rank
-    cargo_rank = ctx.guild.get_role(1353419796498219058)  # Ajuste o ID do cargo @🏆 Rank
+    # Obter todos os membros com o cargo @Rank
+    cargo_rank = ctx.guild.get_role(1353419796498219058)  #Ajuste o ID do cargo @Rank
     if cargo_rank is None:
         await ctx.send("Cargo Rank não encontrado!")
         return
 
-    # Adicionar todos os membros com o cargo @🏆 Rank à lista de participantes
+    # Adicionar todos os membros com o cargo @Rank à lista de participantes
     for membro in ctx.guild.members:
         if cargo_rank in membro.roles and not membro.bot:
             participantes.append(membro.display_name)  # Usando display_name para mostrar o nome do membro
