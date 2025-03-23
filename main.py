@@ -82,7 +82,7 @@ async def iniciar(ctx):
     # Obter todos os membros com o cargo @🏆 Rank
     cargo_rank = ctx.guild.get_role(1353419796498219058)  # Ajuste o ID do cargo @🏆 Rank
     if cargo_rank is None:
-        await ctx.send("Cargo @🏆 Rank não encontrado!")
+        await ctx.send("Cargo Rank não encontrado!")
         return
 
     # Adicionar todos os membros com o cargo @🏆 Rank à lista de participantes
