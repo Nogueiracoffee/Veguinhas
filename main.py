@@ -4,8 +4,6 @@ import os
 import json
 import random
 
-TOKEN = "MTMzMDM4NTEzNTkzMzMyNTM3Mw.Gx9HJU.2cuRPgW7ZYRjLqgk9-1iEfftdvzXgsQhof-2RE"  # Substitua pelo seu token real
-
 # Configurar intents
 intents = discord.Intents.default()
 intents.message_content = True
@@ -49,7 +47,6 @@ async def on_ready():
     carregar_saldo()
     print(f'Bot conectado como {bot.user}')
 
-
     # Comando para exibir inventário
     @bot.command()
     async def perfil(ctx):
@@ -57,53 +54,13 @@ async def on_ready():
         saldo = saldo_usuarios.get(user_id, 0)
         cargo = ctx.author.top_role.name
         await ctx.send(
-    f"📜 **Inventário de {ctx.author.display_name}**\n"
-    f"━━━━━━━━━━━━━━━━━━━\n"
-    f"🏷️ **Cargo:** {cargo}\n"
-    f"🪙 **Escoltes:** {saldo}\n"
-    f"━━━━━━━━━━━━━━━━━━━"
-)
+            f"📜 **Inventário de {ctx.author.display_name}**\n"
+            f"━━━━━━━━━━━━━━━━━━━\n"
+            f"🏷️ **Cargo:** {cargo}\n"
+            f"🪙 **Escoltes:** {saldo}\n"
+            f"━━━━━━━━━━━━━━━━━━━"
+        )
 
-# Comando de teste
-@bot.command()
-async def ping(ctx):
-    await ctx.send('Pong!')
-
-
-# Comando para contar cafés
-@bot.command()
-async def café(ctx):
-    user_id = str(ctx.author.id)
-    cafes_por_usuario[user_id] = cafes_por_usuario.get(user_id, 0) + 1
-    total_cafes = cafes_por_usuario[user_id]
-    await ctx.send(f"{ctx.author.mention} já tomou {total_cafes}° ☕")
-
-
-# Comando para adicionar saldo manualmente (admin)
-@bot.command()
-@commands.has_permissions(administrator=True)
-async def addsaldo(ctx, membro: discord.Member, quantidade: int):
-    user_id = str(membro.id)
-    saldo_usuarios[user_id] = saldo_usuarios.get(user_id, 0) + quantidade
-    salvar_saldo()
-    await ctx.send(f"{membro.mention} Recebeu {quantidade} Escoltes! Saldo atual: {saldo_usuarios[user_id]} 🪙")
-
-
-# Comando para transferir saldo entre usuários
-@bot.command()
-async def transferir(ctx, membro: discord.Member, quantidade: int):
-    sender_id = str(ctx.author.id)
-    receiver_id = str(membro.id)
-
-    if sender_id not in saldo_usuarios or saldo_usuarios[sender_id] < quantidade:
-        await ctx.send(f"{ctx.author.mention}, Você não tem saldo suficiente para transferir!")
-        return
-
-    saldo_usuarios[sender_id] -= quantidade
-    saldo_usuarios[receiver_id] = saldo_usuarios.get(receiver_id, 0) + quantidade
-    salvar_saldo()
-
-    await ctx.send(f"{ctx.author.mention} Transferiu {quantidade} Escoltes para {membro.mention}! 💰")
 
 # Comando para iniciar o jogo
 @bot.command()
@@ -121,7 +78,7 @@ async def iniciar(ctx):
     eliminados = []
 
     # Obter todos os membros com o cargo @🏆 Rank
-    cargo_rank = ctx.guild.get_role(1353419796498219058)  # Ajuste o nome conforme necessário
+    cargo_rank = ctx.guild.get_role(1353419796498219058)  # Ajuste o ID do cargo @🏆 Rank
     if cargo_rank is None:
         await ctx.send("Cargo @🏆 Rank não encontrado!")
         return
@@ -147,8 +104,9 @@ async def iniciar(ctx):
     impostor = random.choice(participantes)
 
     # Enviar mensagem privada para o impostor avisando sobre sua identidade
-    impostor_membro = ctx.guild.get_member(int(impostor))
-    await impostor_membro.send(f"Você é o **IMPOSTOR**! Seu objetivo é eliminar os outros jogadores sem ser descoberto. Boa sorte!")
+    impostor_membro = ctx.guild.get_member(int(impostor))  # Buscar o membro no servidor
+    if impostor_membro:
+        await impostor_membro.send(f"Você é o **IMPOSTOR**! Seu objetivo é eliminar os outros jogadores sem ser descoberto. Boa sorte!")
 
     # Enviar mensagem pública informando que o jogo começou
     jogo_ativo = True
@@ -171,25 +129,6 @@ async def eliminar(ctx, membro: discord.Member):
 
     eliminados.append(membro.display_name)
     await ctx.send(f"{membro.display_name} foi eliminado!")
-
-# Comando para acusar o impostor
-@bot.command()
-async def acusar(ctx, membro: discord.Member):
-    global impostor, saldo_usuarios
-
-    if not jogo_ativo:
-        await ctx.send("O jogo ainda não foi iniciado.")
-        return
-
-    if membro.display_name == impostor:
-        saldo_usuarios[str(ctx.author.id)] -= 1  # Deduzir escolte do tripulante
-        saldo_usuarios[str(impostor)] += 1  # Impostor ganha escolte
-        await ctx.send(f"{ctx.author.display_name} acusou corretamente o impostor!")
-        await finalizar_jogo(ctx, "tripulante")
-        return
-
-    saldo_usuarios[str(ctx.author.id)] -= 1  # Deduzir escolte do tripulante
-    await ctx.send(f"{ctx.author.display_name} acusou erroneamente! Você perdeu 1 escolte!")
 
 # Função para finalizar o jogo
 async def finalizar_jogo(ctx, vencedor):
@@ -214,7 +153,6 @@ def resetar_jogo():
 async def falar(ctx, *, mensagem):
     await ctx.message.delete()
     await ctx.send(mensagem)
-
 
 # Rodar o bot
 bot.run(TOKEN)
