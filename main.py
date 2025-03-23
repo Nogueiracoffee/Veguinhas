@@ -4,6 +4,8 @@ import os
 import json
 import random
 
+TOKEN = "MTMzMDM4NTEzNTkzMzMyNTM3Mw.Gx9HJU.2cuRPgW7ZYRjLqgk9-1iEfftdvzXgsQhof-2RE"  # Substitua pelo seu token real
+
 # Configurar intents
 intents = discord.Intents.default()
 intents.message_content = True
