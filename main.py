@@ -104,6 +104,7 @@ async def transferir(ctx, membro: discord.Member, quantidade: int):
     salvar_saldo()
 
     await ctx.send(f"{ctx.author.mention} Transferiu {quantidade} Escoltes para {membro.mention}! 💰")
+
 # Comando para iniciar o jogo
 @bot.command()
 @commands.has_permissions(administrator=True)
@@ -128,11 +129,19 @@ async def iniciar(ctx):
     # Adicionar todos os membros com o cargo @🏆 Rank à lista de participantes
     for membro in ctx.guild.members:
         if cargo_rank in membro.roles and not membro.bot:
-            participantes.append(str(membro.id))
+            participantes.append(membro.display_name)  # Usando display_name para mostrar o nome do membro
 
+    # Verificar se a lista de participantes não está vazia
     if len(participantes) < 2:
         await ctx.send("Precisa de pelo menos 2 jogadores com o cargo @🏆 Rank para iniciar o jogo.")
         return
+
+    # Log de depuração para verificar os participantes
+    print(f"Participantes com o cargo @🏆 Rank: {participantes}")
+
+    # Exibir os participantes no canal onde o comando foi executado
+    participantes_list = "\n".join(participantes)
+    await ctx.send(f"🎮 O jogo começou! 🎮\n\nOs participantes são:\n{participantes_list}")
 
     # Escolher aleatoriamente o impostor entre os participantes
     impostor = random.choice(participantes)
@@ -145,46 +154,59 @@ async def iniciar(ctx):
     jogo_ativo = True
     await ctx.send(f"O jogo começou! O impostor é... alguém, mas não direi quem! O objetivo dos tripulantes é descobrir quem é o impostor!")
 
-# Comando para o impostor eliminar alguém
+# Comando de eliminar um jogador
 @bot.command()
 async def eliminar(ctx, membro: discord.Member):
-    global impostor
+    global impostor, eliminados
+
     if not jogo_ativo:
-        await ctx.send("O jogo não está ativo!")
+        await ctx.send("O jogo ainda não foi iniciado.")
         return
 
-    if str(ctx.author.id) != impostor:
-        await ctx.send("Você não é o impostor e não pode eliminar ninguém!")
+    if membro.display_name == impostor:
+        await ctx.send(f"{membro.display_name} foi eliminado! O impostor ganha essa rodada!")
+        eliminados.append(membro.display_name)
+        await finalizar_jogo(ctx, "impostor")
         return
 
-    if str(membro.id) not in participantes:
-        await ctx.send("Este jogador não está no jogo!")
-        return
-
-    # Eliminar jogador
-    participantes.remove(str(membro.id))
-    eliminados.append(str(membro.id))
-    await ctx.send(f"{membro.display_name} foi eliminado pelo impostor!")
+    eliminados.append(membro.display_name)
+    await ctx.send(f"{membro.display_name} foi eliminado!")
 
 # Comando para acusar o impostor
 @bot.command()
 async def acusar(ctx, membro: discord.Member):
-    global impostor
-    user_id = str(ctx.author.id)
-    if user_id in eliminados:
-        await ctx.send(f"{ctx.author.display_name}, você está eliminado do jogo!")
+    global impostor, saldo_usuarios
+
+    if not jogo_ativo:
+        await ctx.send("O jogo ainda não foi iniciado.")
         return
 
-    if str(membro.id) == impostor:
-        saldo_usuarios[user_id] -= 1  # Custa 1 escolte para acusar
-        saldo_usuarios[impostor] -= 1  # Impostor perde 1 escolte se for acusado corretamente
-        salvar_saldo()
-        await ctx.send(f"{ctx.author.display_name} acusou corretamente o impostor! {membro.display_name} perdeu 1 escolte!")
-    else:
-        saldo_usuarios[user_id] -= 1  # Custa 1 escolte para acusar
-        salvar_saldo()
-        await ctx.send(f"{ctx.author.display_name} acusou {membro.display_name} de ser o impostor, mas errou! Você perdeu 1 escolte!")
+    if membro.display_name == impostor:
+        saldo_usuarios[str(ctx.author.id)] -= 1  # Deduzir escolte do tripulante
+        saldo_usuarios[str(impostor)] += 1  # Impostor ganha escolte
+        await ctx.send(f"{ctx.author.display_name} acusou corretamente o impostor!")
+        await finalizar_jogo(ctx, "tripulante")
+        return
 
+    saldo_usuarios[str(ctx.author.id)] -= 1  # Deduzir escolte do tripulante
+    await ctx.send(f"{ctx.author.display_name} acusou erroneamente! Você perdeu 1 escolte!")
+
+# Função para finalizar o jogo
+async def finalizar_jogo(ctx, vencedor):
+    global jogo_ativo
+    jogo_ativo = False
+    if vencedor == "impostor":
+        await ctx.send("O impostor venceu! O jogo acabou.")
+    elif vencedor == "tripulante":
+        await ctx.send("Os tripulantes venceram! O impostor foi descoberto.")
+    resetar_jogo()
+
+# Função para resetar os dados do jogo
+def resetar_jogo():
+    global participantes, impostor, eliminados
+    participantes = []
+    impostor = None
+    eliminados = []
 
 # Comando para o bot repetir uma mensagem (somente admin)
 @bot.command()
