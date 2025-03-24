@@ -86,10 +86,13 @@ async def iniciar(ctx):
 
     # Buscar membros com os IDs definidos
     for membro_id in ids_participantes:
-        membro = ctx.guild.get_member(membro_id)
-        if membro and not membro.bot:
-            participantes.append(membro.display_name)  # Usando display_name para mostrar o nome do membro
-
+    membro = ctx.guild.get_member(membro_id)
+    if membro:
+        print(f"Membro encontrado: {membro.display_name}")
+    else:
+        print(f"Membro com ID {membro_id} não encontrado.")
+    if membro and not membro.bot:
+        participantes.append(membro.display_name)
     # Verificar se a lista de participantes não está vazia
     if len(participantes) < 2:
         await ctx.send("Precisa de pelo menos 2 jogadores para iniciar o jogo.")
