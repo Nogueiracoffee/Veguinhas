@@ -6,6 +6,11 @@ import random
 
 TOKEN = "MTMzMDM4NTEzNTkzMzMyNTM3Mw.Gx9HJU.2cuRPgW7ZYRjLqgk9-1iEfftdvzXgsQhof-2RE"  # Substitua pelo seu token real
 
+ids_participantes = [
+    588355456876019720,  # Substitua com o ID do primeiro membro
+    1165663003295895743,  # Substitua com o ID do segundo membro
+    # Adicione mais IDs conforme necessário
+]
 # Configurar intents
 intents = discord.Intents.default()
 intents.message_content = True
@@ -79,26 +84,19 @@ async def iniciar(ctx):
     impostor = None
     eliminados = []
 
-    # Buscar o cargo pelo nome
-    cargo_rank_nome = "Rank"  # Substitua pelo nome exato do cargo
-    cargo_rank = discord.utils.get(ctx.guild.roles, name=cargo_rank_nome)
-
-    if cargo_rank is None:
-        await ctx.send(f"O cargo {cargo_rank_nome} não foi encontrado!")
-        return
-
-    # Lista de participantes
-    for membro in ctx.guild.members:
-        if cargo_rank in membro.roles and not membro.bot:
+    # Buscar membros com os IDs definidos
+    for membro_id in ids_participantes:
+        membro = ctx.guild.get_member(membro_id)
+        if membro and not membro.bot:
             participantes.append(membro.display_name)  # Usando display_name para mostrar o nome do membro
 
     # Verificar se a lista de participantes não está vazia
     if len(participantes) < 2:
-        await ctx.send("Precisa de pelo menos 2 jogadores com o cargo @Rank para iniciar o jogo.")
+        await ctx.send("Precisa de pelo menos 2 jogadores para iniciar o jogo.")
         return
 
     # Log de depuração para verificar os participantes
-    print(f"Participantes com o cargo @Rank: {participantes}")
+    print(f"Participantes com os IDs definidos: {participantes}")
 
     # Exibir os participantes no canal onde o comando foi executado
     participantes_list = "\n".join(participantes)
@@ -108,7 +106,6 @@ async def iniciar(ctx):
     impostor = random.choice(participantes)
 
     # Enviar mensagem privada para o impostor avisando sobre sua identidade
-    # Para isso, precisamos encontrar o membro no servidor usando o nome ou o ID
     impostor_membro = None
     for membro in ctx.guild.members:
         if membro.display_name == impostor:  # Procurar pelo nome do participante
