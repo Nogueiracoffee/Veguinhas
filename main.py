@@ -104,40 +104,52 @@ async def iniciar(ctx):
     impostor = None
     eliminados = []
 
+# Buscar o cargo pelo nome
 cargo_rank_nome = "Rank"  # Substitua pelo nome exato do cargo
 cargo_rank = discord.utils.get(ctx.guild.roles, name=cargo_rank_nome)
 
 if cargo_rank is None:
     await ctx.send(f"O cargo {cargo_rank_nome} não foi encontrado!")
     return
-    # Verificar se há membros com o cargo @Rank
-    for membro in ctx.guild.members:
-        if cargo_rank in membro.roles and not membro.bot:
-            participantes.append(membro.display_name)  # Usando display_name para mostrar o nome do membro
 
-    # Verificar se a lista de participantes não está vazia
-    if len(participantes) < 2:
-        await ctx.send("Precisa de pelo menos 2 jogadores com o cargo @Rank para iniciar o jogo.")
-        return
+# Lista de participantes
+participantes = []
 
-    # Log de depuração para verificar os participantes
-    print(f"Participantes com o cargo @🏆 Rank: {participantes}")
+# Verificar se há membros com o cargo @Rank
+for membro in ctx.guild.members:
+    if cargo_rank in membro.roles and not membro.bot:
+        participantes.append(membro.display_name)  # Usando display_name para mostrar o nome do membro
 
-    # Exibir os participantes no canal onde o comando foi executado
-    participantes_list = "\n".join(participantes)
-    await ctx.send(f"🎮 O jogo começou! 🎮\n\nOs participantes são:\n{participantes_list}")
+# Verificar se a lista de participantes não está vazia
+if len(participantes) < 2:
+    await ctx.send("Precisa de pelo menos 2 jogadores com o cargo @Rank para iniciar o jogo.")
+    return
 
-    # Escolher aleatoriamente o impostor entre os participantes
-    impostor = random.choice(participantes)
+# Log de depuração para verificar os participantes
+print(f"Participantes com o cargo @Rank: {participantes}")
 
-    # Enviar mensagem privada para o impostor avisando sobre sua identidade
-    impostor_membro = ctx.guild.get_member(int(impostor))  # Buscar o membro no servidor
-    if impostor_membro:
-        await impostor_membro.send(f"Você é o **IMPOSTOR**! Seu objetivo é eliminar os outros jogadores sem ser descoberto. Boa sorte!")
+# Exibir os participantes no canal onde o comando foi executado
+participantes_list = "\n".join(participantes)
+await ctx.send(f"🎮 O jogo começou! 🎮\n\nOs participantes são:\n{participantes_list}")
 
-    # Enviar mensagem pública informando que o jogo começou
-    jogo_ativo = True
-    await ctx.send(f"O jogo começou! O impostor é... alguém, mas não direi quem! O objetivo dos tripulantes é descobrir quem é o impostor!")
+# Escolher aleatoriamente o impostor entre os participantes
+impostor = random.choice(participantes)
+
+# Enviar mensagem privada para o impostor avisando sobre sua identidade
+# Para isso, precisamos encontrar o membro no servidor usando o nome ou o ID
+impostor_membro = None
+for membro in ctx.guild.members:
+    if membro.display_name == impostor:  # Procurar pelo nome do participante
+        impostor_membro = membro
+        break
+
+if impostor_membro:
+    await impostor_membro.send(f"Você é o **IMPOSTOR**! Seu objetivo é eliminar os outros jogadores sem ser descoberto. Boa sorte!")
+
+# Enviar mensagem pública informando que o jogo começou
+jogo_ativo = True
+await ctx.send(f"O jogo começou! O impostor é... alguém, mas não direi quem! O objetivo dos tripulantes é descobrir quem é o impostor!")
+
 
 # Comando de eliminar um jogador
 @bot.command()
