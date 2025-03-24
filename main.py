@@ -104,14 +104,12 @@ async def iniciar(ctx):
     impostor = None
     eliminados = []
 
-    # Tentar obter o cargo @Rank usando o ID
-    cargo_rank_id = 1353419796498219058  # Ajuste o ID do cargo @Rank
-    cargo_rank = ctx.guild.get_role(cargo_rank_id)
+cargo_rank_nome = "Rank"  # Substitua pelo nome exato do cargo
+cargo_rank = discord.utils.get(ctx.guild.roles, name=cargo_rank_nome)
 
-    if cargo_rank is None:
-        await ctx.send("O cargo @Rank não foi encontrado neste servidor. Verifique se o ID está correto ou se o cargo foi atribuído.")
-        return
-
+if cargo_rank is None:
+    await ctx.send(f"O cargo {cargo_rank_nome} não foi encontrado!")
+    return
     # Verificar se há membros com o cargo @Rank
     for membro in ctx.guild.members:
         if cargo_rank in membro.roles and not membro.bot:
