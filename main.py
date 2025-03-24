@@ -167,6 +167,3 @@ async def falar(ctx, *, mensagem):
 
 # Rodar o bot
 bot.run(TOKEN)
-
-
-fica dizendo que precisa de 2 para começar o jogo sabendo q tem dois id ai
