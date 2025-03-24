@@ -7,8 +7,7 @@ import random
 TOKEN = "MTMzMDM4NTEzNTkzMzMyNTM3Mw.Gx9HJU.2cuRPgW7ZYRjLqgk9-1iEfftdvzXgsQhof-2RE"  # Substitua pelo seu token real
 
 ids_participantes = [
-    588355456876019720,  # Substitua com o ID do primeiro membro
-    1165663003295895743,  # Substitua com o ID do segundo membro
+    1353419796498219058,  # Substitua com o ID do primeiro membro  # Substitua com o ID do segundo membro
     # Adicione mais IDs conforme necessário
 ]
 # Configurar intents
