@@ -104,20 +104,22 @@ async def iniciar(ctx):
     impostor = None
     eliminados = []
 
-    # Obter todos os membros com o cargo @Rank
-    cargo_rank = ctx.guild.get_role(1353419796498219058)  #Ajuste o ID do cargo @Rank
+    # Tentar obter o cargo @Rank usando o ID
+    cargo_rank_id = 1353419796498219058  # Ajuste o ID do cargo @Rank
+    cargo_rank = ctx.guild.get_role(cargo_rank_id)
+
     if cargo_rank is None:
-        await ctx.send("Cargo Rank não encontrado!")
+        await ctx.send("O cargo @Rank não foi encontrado neste servidor. Verifique se o ID está correto ou se o cargo foi atribuído.")
         return
 
-    # Adicionar todos os membros com o cargo @Rank à lista de participantes
+    # Verificar se há membros com o cargo @Rank
     for membro in ctx.guild.members:
         if cargo_rank in membro.roles and not membro.bot:
             participantes.append(membro.display_name)  # Usando display_name para mostrar o nome do membro
 
     # Verificar se a lista de participantes não está vazia
     if len(participantes) < 2:
-        await ctx.send("Precisa de pelo menos 2 jogadores com o cargo @🏆 Rank para iniciar o jogo.")
+        await ctx.send("Precisa de pelo menos 2 jogadores com o cargo @Rank para iniciar o jogo.")
         return
 
     # Log de depuração para verificar os participantes
