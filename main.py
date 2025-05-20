@@ -4,19 +4,19 @@ import random
 import json
 import os
 
-TOKEN = "MTMzMDM4NTEzNTkzMzMyNTM3Mw.Gx9HJU.2cuRPgW7ZYRjLqgk9-1iEfftdvzXgsQhof-2RE"
-# Configurações básicas
+# CONFIGURAÇÃO DO BOT
 intents = discord.Intents.default()
 intents.message_content = True
+intents.members = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
-# Caminho do arquivo JSON
+# ARQUIVO DE BANCO DE DADOS
 DB_FILE = "vegas_data.json"
 
-# Lista de símbolos do caça-níquel
+# SÍMBOLOS DO SLOT
 bet_symbols = ["🐸", "🐵", "🐰", "🦊", "🐻", "🐼"]
 
-# Carrega ou cria o banco de dados
+# FUNÇÃO: CARREGAR BANCO DE DADOS
 def load_database():
     if not os.path.exists(DB_FILE):
         with open(DB_FILE, "w") as f:
@@ -24,42 +24,38 @@ def load_database():
     with open(DB_FILE, "r") as f:
         return json.load(f)
 
-# Salva o banco de dados
+# FUNÇÃO: SALVAR BANCO DE DADOS
 def save_database(data):
     with open(DB_FILE, "w") as f:
         json.dump(data, f, indent=4)
 
-# Comando de jogo
+# COMANDO: SLOT !vegas
 @bot.command()
 async def vegas(ctx):
     user_id = str(ctx.author.id)
     user_name = ctx.author.name
-
-    # Carrega o banco de dados
     data = load_database()
 
-    # Se o usuário não estiver no banco, cria com 0 saldo
+    # REGISTRA USUÁRIO NOVO
     if user_id not in data:
         data[user_id] = {
             "nome": user_name,
             "escolte": 0
         }
         save_database(data)
-        await ctx.send(f"👋 | {ctx.author.mention}, você foi registrado com **0 escoltes**. Assim que tiver escoltes, poderá jogar usando este comando!")
+        await ctx.send(f"👋 | {ctx.author.mention}, você foi registrado com **0 escoltes**. Peça para um admin adicionar saldo antes de jogar!")
         return
 
-    # Consulta o saldo
+    # VERIFICA SALDO
     saldo = data[user_id]["escolte"]
-
-    # Verifica se tem saldo suficiente
     if saldo < 3:
         await ctx.send(f"❌ | {ctx.author.mention}, você precisa de pelo menos **3 escoltes** para jogar. Seu saldo atual: `{saldo}`.")
         return
 
-    # Cobra 3 créditos para girar
+    # COBRA 3 ESCOLTES
     data[user_id]["escolte"] -= 3
 
-    # Gira os slots
+    # GIRA SLOT
     slot1 = random.choice(bet_symbols)
     slot2 = random.choice(bet_symbols)
     slot3 = random.choice(bet_symbols)
@@ -72,7 +68,7 @@ async def vegas(ctx):
 └──────────────┘
 """
 
-    # Calcula o resultado
+    # CALCULA GANHOS
     if slot1 == slot2 == slot3:
         ganho = 20
         data[user_id]["escolte"] += ganho
@@ -84,15 +80,39 @@ async def vegas(ctx):
     else:
         resultado += "\n😢 | Nenhuma combinação. Melhor sorte na próxima!"
 
-    # Mostra saldo final
+    # MOSTRA SALDO FINAL
     resultado += f"\n💼 | Saldo atual: `{data[user_id]['escolte']}` escoltes."
 
-    # Salva o banco
+    # SALVA DADOS
     save_database(data)
-
-    # Envia o resultado
     await ctx.send(resultado)
 
-# Inicia o bot
+# COMANDO ADMIN: ADICIONAR ESCOLTE
+@bot.command()
+@commands.has_permissions(administrator=True)  # Só admins podem usar
+async def addescolte(ctx, member: discord.Member, valor: int):
+    data = load_database()
+    user_id = str(member.id)
+    user_name = member.name
+
+    # Se usuário ainda não existir, registrar com saldo 0
+    if user_id not in data:
+        data[user_id] = {
+            "nome": user_name,
+            "escolte": 0
+        }
+
+    data[user_id]["escolte"] += valor
+    save_database(data)
+    await ctx.send(f"✅ | Adicionado **{valor} escoltes** para {member.mention}. Saldo atual: `{data[user_id]['escolte']}`.")
+
+# ERRO DE PERMISSÃO
+@addescolte.error
+async def addescolte_error(ctx, error):
+    if isinstance(error, commands.MissingPermissions):
+        await ctx.send("❌ | Você não tem permissão para usar este comando.")
+
+# INICIAR BOT
 bot.run('MTMzMDM4NTEzNTkzMzMyNTM3Mw.Gx9HJU.2cuRPgW7ZYRjLqgk9-1iEfftdvzXgsQhof-2RE')
+
 
