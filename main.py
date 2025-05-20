@@ -115,4 +115,4 @@ async def on_ready():
 	print(f"✅ Bot online como {bot.user}")
 
 # Inicie o bot com o seu token
-bot.run("SEU_TOKEN_AQUI")
+bot.run("MTMzMDM4NTEzNTkzMzMyNTM3Mw.Gx9HJU.2cuRPgW7ZYRjLqgk9-1iEfftdvzXgsQhof-2RE")
