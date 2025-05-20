@@ -36,7 +36,7 @@ async def vegas(ctx):
     user_name = ctx.author.name
     data = load_database()
 
-    # REGISTRA USUÁRIO NOVO
+    # REGISTRA USUÁRIO NOVO COM 0 ESCOLTES
     if user_id not in data:
         data[user_id] = {
             "nome": user_name,
@@ -70,11 +70,11 @@ async def vegas(ctx):
 
     # CALCULA GANHOS
     if slot1 == slot2 == slot3:
-        ganho = 20
+        ganho = 10
         data[user_id]["escolte"] += ganho
         resultado += f"\n💰 | Trinca! Você ganhou **{ganho} escoltes**!"
     elif slot1 == slot2 or slot2 == slot3 or slot1 == slot3:
-        ganho = 15
+        ganho = 5
         data[user_id]["escolte"] += ganho
         resultado += f"\n✨ | Par! Você ganhou **{ganho} escoltes**!"
     else:
@@ -89,13 +89,13 @@ async def vegas(ctx):
 
 # COMANDO ADMIN: ADICIONAR ESCOLTE
 @bot.command()
-@commands.has_permissions(administrator=True)  # Só admins podem usar
+@commands.has_permissions(administrator=True)
 async def addescolte(ctx, member: discord.Member, valor: int):
     data = load_database()
     user_id = str(member.id)
     user_name = member.name
 
-    # Se usuário ainda não existir, registrar com saldo 0
+    # REGISTRA USUÁRIO CASO NÃO EXISTA
     if user_id not in data:
         data[user_id] = {
             "nome": user_name,
@@ -106,7 +106,7 @@ async def addescolte(ctx, member: discord.Member, valor: int):
     save_database(data)
     await ctx.send(f"✅ | Adicionado **{valor} escoltes** para {member.mention}. Saldo atual: `{data[user_id]['escolte']}`.")
 
-# ERRO DE PERMISSÃO
+# ERRO DE PERMISSÃO NO COMANDO ADMIN
 @addescolte.error
 async def addescolte_error(ctx, error):
     if isinstance(error, commands.MissingPermissions):
