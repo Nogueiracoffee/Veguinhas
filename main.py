@@ -62,7 +62,7 @@ async def vegas(ctx):
     mensagem = await ctx.send(f"🎰 | {ctx.author.mention} puxou a alavanca...\n\n```\n🎰 [🔄 | 🔄 | 🔄]\n```")
 
     # SIMULAÇÃO DO GIRO COM 10 ATUALIZAÇÕES
-    for _ in range(5):
+    for _ in range(6):
         girando = f"🎰 [ {random.choice(bet_symbols)} | {random.choice(bet_symbols)} | {random.choice(bet_symbols)} ]"
         await mensagem.edit(content=f"{ctx.author.mention} girando a roleta...\n\n```\n{girando}\n```")
         await asyncio.sleep(0.3)
@@ -74,11 +74,10 @@ async def vegas(ctx):
 
     final = f"""
 🎰 | {ctx.author.mention} girou a roleta!
-
-```fix
-╔═════════════════╗
+       🎲 SLOT MACHINE 🎲
+╔═══════════════════╗
 ║  {slot1}  |  {slot2}  |  {slot3}  ║
-╚═════════════════╝
+╚═══════════════════╝
 """
 
     if slot1 == slot2 == slot3:
