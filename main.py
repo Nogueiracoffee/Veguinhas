@@ -76,9 +76,9 @@ async def vegas(ctx):
 🎰 | {ctx.author.mention} girou a roleta!
 
 ```fix
-╔════════════════════╗
+╔══════════════════╗
 ║  {slot1} | {slot2} | {slot3}  ║
-╚════════════════════╝
+╚══════════════════╝
 ```
 """
 
@@ -93,7 +93,7 @@ async def vegas(ctx):
     else:
         final += "\n😢 Nenhuma combinação. Tente novamente!"
 
-    final += f"\n\n💼 | Saldo atual: `{data[user_id]['escolte']}` escoltes."
+    final += f"\n\n💰 | Saldo atual: `{data[user_id]['escolte']}` escoltes."
 
     save_database(data)
     await mensagem.edit(content=final)
