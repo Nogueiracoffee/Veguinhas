@@ -76,8 +76,8 @@ async def vegas(ctx):
 🎰 | {ctx.author.mention} girou a roleta!
 
 ╔══ 🎲 SLOT MACHINE 🎲 ══╗
-║     {slot1}  |  {slot2}  |  {slot3}        ║
-╚══════════════════╝
+║         {slot1}  |  {slot2}  |  {slot3}        ║
+╚═══════════════════╝
 """
 
     if slot1 == slot2 == slot3:
