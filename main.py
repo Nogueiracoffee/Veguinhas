@@ -1,146 +1,118 @@
 import discord
 from discord.ext import commands
-import random
 import json
+import random
 import os
 
-TOKEN = "MTMzMDM4NTEzNTkzMzMyNTM3Mw.Gx9HJU.2cuRPgW7ZYRjLqgk9-1iEfftdvzXgsQhof-2RE"  # Substitua pelo seu token real
+TOKEN = "MTMzMDM4NTEzNTkzMzMyNTM3Mw.Gx9HJU.2cuRPgW7ZYRjLqgk9-1iEfftdvzXgsQhof-2RE"
 
-# Define as permissões (intents) que o bot precisa para funcionar corretamente
+# Intents obrigatórios para funcionar corretamente
 intents = discord.Intents.default()
-intents.messages = True
 intents.message_content = True
+intents.members = True
 
-# Criar o bot com prefixo
-bot = commands.Bot(command_prefix='!', intents=intents)
+# Prefixo do bot
+bot = commands.Bot(command_prefix="!", intents=intents)
 
-# Nome do arquivo que será usado como banco de dados para salvar os saldos dos jogadores
-DB_FILE = "escolte_banco.json"
+# Caminho do arquivo JSON onde o saldo dos usuários será salvo
+DATABASE_FILE = "escolte_database.json"
 
-# Lista com os símbolos usados no caça-níquel
+# Emojis usados nos slots
 bet_symbols = ["🐸", "🐵", "🐰", "🦊", "🐻", "🐼"]
 
-# Define o valor mínimo de escoltes para rodar a máquina
-minimum_escolte = 3
+# Valor mínimo para jogar
+MIN_CREDITS_TO_PLAY = 3
 
-# Função para carregar os dados do banco de dados (arquivo JSON)
-def carregar_dados():
-    if os.path.exists(DB_FILE):
-        with open(DB_FILE, "r") as f:
-            return json.load(f)
-    return {}  # Se o arquivo não existir, retorna um dicionário vazio
+# Função para carregar ou criar o banco de dados
+def load_database():
+	if not os.path.exists(DATABASE_FILE):
+		with open(DATABASE_FILE, "w") as f:
+			json.dump({}, f)
+	with open(DATABASE_FILE, "r") as f:
+		return json.load(f)
 
-# Função para salvar os dados no arquivo JSON
-def salvar_dados(dados):
-    with open(DB_FILE, "w") as f:
-        json.dump(dados, f, indent=4)
+# Função para salvar o banco de dados atualizado
+def save_database(data):
+	with open(DATABASE_FILE, "w") as f:
+		json.dump(data, f, indent=4)
 
-# Comando para registrar um jogador na Vegas Machine
-@bot.command()
+# Comando principal do jogo
+@bot.command(name="vegas")
 async def vegas(ctx):
-    user = ctx.author
-    dados = carregar_dados()
+	user_id = str(ctx.author.id)  # ID único do usuário
+	user_name = ctx.author.name   # Nome do usuário
+	data = load_database()        # Carrega o banco
 
-    if str(user.id) not in dados:
-        # Registra o usuário com 0 escoltes
-        dados[str(user.id)] = {
-            "nome": user.display_name,
-            "escolte": 0
-        }
-        salvar_dados(dados)
-        await ctx.send(
-            f"🎰 {user.mention}, você foi registrado na **Vegas Machine**.\n"
-            f"Você ainda não tem escoltes. Aguarde um administrador adicionar escoltes para começar a jogar."
-        )
-    else:
-        await ctx.send(f"{user.mention}, você já está registrado. Use `!apostar` quando tiver escoltes.")
+	# Se o usuário não estiver no banco, cria com 0 saldo e não deixa jogar
+	if user_id not in data:
+		data[user_id] = {
+			"nome": user_name,
+			"escolte": 0
+		}
+		save_database(data)
+		await ctx.send(f"🛑 | {ctx.author.mention}, você foi registrado com **0 escoltes**. Peça para um admin adicionar saldo antes de jogar.")
+		return
 
-# Comando para consultar o saldo atual
-@bot.command()
-async def saldo(ctx):
-    user = ctx.author
-    dados = carregar_dados()
+	saldo = data[user_id]["escolte"]
 
-    if str(user.id) not in dados:
-        await ctx.send(f"{user.mention}, registre-se primeiro com `!vegas`.")
-    else:
-        escolte = dados[str(user.id)]["escolte"]
-        await ctx.send(f"💰 {user.mention}, você tem **{escolte} escoltes**.")
+	# Se não tiver saldo suficiente
+	if saldo < MIN_CREDITS_TO_PLAY:
+		await ctx.send(f"💸 | {ctx.author.mention}, você precisa de pelo menos **{MIN_CREDITS_TO_PLAY} escoltes** para jogar. Saldo atual: **{saldo}**.")
+		return
 
-# Comando para mostrar as instruções do jogo
-@bot.command()
-async def instrucoes(ctx):
-    await ctx.send(
-        "**Instruções do Jogo:**\n"
-        "🎯 3 símbolos iguais = +20 escoltes\n"
-        "🎯 2 símbolos iguais = +10 escoltes\n"
-        "❌ Nenhum igual = perde os 3 escoltes da rodada\n"
-        "🎲 Custo por rodada: 3 escoltes\n"
-        "Use `!apostar` para jogar!"
-    )
+	# Gasta 3 créditos
+	data[user_id]["escolte"] -= MIN_CREDITS_TO_PLAY
 
-# Comando principal para jogar na máquina
-@bot.command()
-async def apostar(ctx):
-    user = ctx.author
-    dados = carregar_dados()
+	# Sorteia os emojis
+	slot1 = random.choice(bet_symbols)
+	slot2 = random.choice(bet_symbols)
+	slot3 = random.choice(bet_symbols)
 
-    # Verifica se o jogador está registrado
-    if str(user.id) not in dados:
-        await ctx.send(f"{user.mention}, registre-se primeiro com `!vegas`.")
-        return
+	# Resultado dos slots
+	resultado = f"🎰 | {slot1} | {slot2} | {slot3} | 🎰"
 
-    saldo = dados[str(user.id)]["escolte"]
-# Verifica se tem escoltes suficientes para apostar
-    if saldo < minimum_escolte:
-        await ctx.send(f"❌ {user.mention}, você não tem escoltes suficientes para jogar. (Mínimo: {minimum_escolte})")
-        return
+	# Verifica ganhos
+	ganhou = False
+	if slot1 == slot2 == slot3:
+		data[user_id]["escolte"] += 20
+		ganhou = True
+		msg = f"🎉 {ctx.author.mention} tirou **3 iguais** e ganhou **20 escoltes!**"
+	elif slot1 == slot2 or slot2 == slot3 or slot1 == slot3:
+		data[user_id]["escolte"] += 15
+		ganhou = True
+		msg = f"😸 {ctx.author.mention} tirou **2 iguais** e ganhou **15 escoltes!**"
+	else:
+		msg = f"🙁 {ctx.author.mention}, você **não ganhou nada** dessa vez."
 
-    # Desconta o valor da aposta
-    dados[str(user.id)]["escolte"] -= minimum_escolte
+	# Salva o banco após o jogo
+	save_database(data)
 
-    # Sorteia três símbolos aleatórios
-    s1 = random.choice(bet_symbols)
-    s2 = random.choice(bet_symbols)
-    s3 = random.choice(bet_symbols)
+	# Mensagem final
+	saldo_final = data[user_id]["escolte"]
+	await ctx.send(f"{resultado}\n{msg}\n💰 Saldo atual: **{saldo_final} escoltes**")
 
-    resultado = f"| {s1} | {s2} | {s3} |"
-    ganho = 0  # Inicia com zero de ganho
-
-    # Verifica as combinações para calcular o ganho
-    if s1 == s2 == s3:
-        ganho = 20
-    elif s1 == s2 or s2 == s3 or s1 == s3:
-        ganho = 10
-
-    # Adiciona o ganho ao saldo do jogador
-    dados[str(user.id)]["escolte"] += ganho
-    salvar_dados(dados)
-
-    novo_saldo = dados[str(user.id)]["escolte"]
-
-    # Cria a mensagem de resultado
-    msg = f"{user.mention} 🎰 Resultado: `{resultado}`\n"
-    if ganho == 20:
-        msg += "🏆 **Jackpot!** Você ganhou **20 escoltes!**\n"
-    elif ganho == 10:
-        msg += "✨ Você ganhou **10 escoltes!**\n"
-    else:
-        msg += "💀 Você perdeu essa rodada.\n"
-
-    msg += f"💰 Saldo atual: **{novo_saldo} escoltes**"
-
-    # Envia a mensagem no Discord
-    await ctx.send(msg)
-
-
-# Comando para o bot repetir uma mensagem (somente admin)
-@bot.command()
+# Comando para admin adicionar saldo
+@bot.command(name="addescolte")
 @commands.has_permissions(administrator=True)
-async def falar(ctx, *, mensagem):
-    await ctx.message.delete()
-    await ctx.send(mensagem)
+async def add_escolte(ctx, membro: discord.Member, quantidade: int):
+	user_id = str(membro.id)
+	data = load_database()
 
+	if user_id not in data:
+		data[user_id] = {
+			"nome": membro.name,
+			"escolte": 0
+		}
 
-# Rodar o bot
-bot.run(TOKEN)
+	data[user_id]["escolte"] += quantidade
+	save_database(data)
+
+	await ctx.send(f"✅ | {quantidade} escoltes adicionados para {membro.mention}. Novo saldo: **{data[user_id]['escolte']}**.")
+
+# Evento para sinalizar que o bot está online
+@bot.event
+async def on_ready():
+	print(f"✅ Bot online como {bot.user}")
+
+# Inicie o bot com o seu token
+bot.run("SEU_TOKEN_AQUI")
