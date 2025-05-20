@@ -72,7 +72,7 @@ async def vegas(ctx):
     slot2 = random.choice(bet_symbols)
     slot3 = random.choice(bet_symbols)
 
-    final = f"""
+final = f"""
 🎰 | {ctx.author.mention} girou a roleta!
 
 ```fix
