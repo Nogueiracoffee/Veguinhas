@@ -14,19 +14,10 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 # ARQUIVO DE BANCO DE DADOS
 DB_FILE = "vegas_data.json"
 
-# EMOJIS E PESOS
-EMOJIS = ["🍒", "⏳", "☕", "🍀", "💎", "♾️"]
-PESOS = [40, 25, 15, 10, 7, 3]  # Frequência dos emojis
-VALORES = {
-    "🍒": 1,
-    "⏳": 2,
-    "☕": 3,
-    "🍀": 5,
-    "💎": 7,
-    "♾️": 10
-}
+# SÍMBOLOS DO SLOT
+bet_symbols = ["🍒", "⏳", "☕", "🍀", "💎", "♾️"]
 
-# DATABASE
+# FUNÇÃO: CARREGAR BANCO DE DADOS
 def load_database():
     if not os.path.exists(DB_FILE):
         with open(DB_FILE, "w") as f:
@@ -34,100 +25,76 @@ def load_database():
     with open(DB_FILE, "r") as f:
         return json.load(f)
 
+# FUNÇÃO: SALVAR BANCO DE DADOS
 def save_database(data):
     with open(DB_FILE, "w") as f:
         json.dump(data, f, indent=4)
 
-# GERA MATRIZ 4x4
-def gerar_matriz():
-    return [[random.choices(EMOJIS, PESOS)[0] for _ in range(4)] for _ in range(4)]
-
-# CONTA OCORRÊNCIA DE EMOJIS
-def contar_emojis(matriz):
-    contagem = {}
-    for linha in matriz:
-        for emoji in linha:
-            contagem[emoji] = contagem.get(emoji, 0) + 1
-    return contagem
-
-# QUEBRA EMOJIS E FAZ DROPAR
-def quebrar_e_drop(matriz):
-    ganhos = 0
-    alterado = True
-
-    while alterado:
-        contagem = contar_emojis(matriz)
-        quebrar = [emoji for emoji, count in contagem.items() if count >= 4]
-        if not quebrar:
-            alterado = False
-            break
-
-        # Quebra os emojis e soma ganhos
-        for i in range(4):
-            for j in range(4):
-                if matriz[i][j] in quebrar:
-                    ganhos += VALORES[matriz[i][j]]
-                    matriz[i][j] = None
-
-        # Dropa os emojis (substitui os quebrados)
-        for col in range(4):
-            nova_coluna = [matriz[linha][col] for linha in range(4) if matriz[linha][col] is not None]
-            faltam = 4 - len(nova_coluna)
-            novos = [random.choices(EMOJIS, PESOS)[0] for _ in range(faltam)]
-            nova_coluna = novos + nova_coluna
-            for linha in range(4):
-                matriz[linha][col] = nova_coluna[linha]
-
-    return matriz, ganhos
-
-# COMANDO PRINCIPAL
+# COMANDO: SLOT !vegas
 @bot.command()
 async def vegas(ctx):
     user_id = str(ctx.author.id)
     user_name = ctx.author.name
     data = load_database()
 
+    # REGISTRA USUÁRIO NOVO
     if user_id not in data:
-        data[user_id] = {"nome": user_name, "escolte": 0}
+        data[user_id] = {
+            "nome": user_name,
+            "escolte": 0
+        }
         save_database(data)
-        await ctx.send(f"👋 | {ctx.author.mention}, registrado com 0 escoltes. Peça para um admin adicionar saldo!")
+        await ctx.send(f"👋 | {ctx.author.mention}, você foi registrado com **0 escoltes**. Peça para um admin adicionar saldo antes de jogar!")
         return
 
+    # VERIFICA SALDO
     saldo = data[user_id]["escolte"]
     if saldo < 3:
-        await ctx.send(f"❌ | {ctx.author.mention}, você precisa de pelo menos 3 escoltes. Saldo: `{saldo}`")
+        await ctx.send(f"❌ | {ctx.author.mention}, você precisa de pelo menos **3 escoltes** para jogar. Seu saldo atual: `{saldo}`.")
         return
 
+    # COBRA 3 ESCOLTES
     data[user_id]["escolte"] -= 3
     save_database(data)
 
-    mensagem = await ctx.send(f"🎰 | {ctx.author.mention} puxou a alavanca...")
+    # INÍCIO DA ANIMAÇÃO
+    rodando = ["🔄", "🔃", "🔁"]
+    mensagem = await ctx.send(f"🎰 | {ctx.author.mention} puxou a alavanca...\n\n```\n🎰 [🔄 | 🔄 | 🔄]\n```")
 
-    matriz = gerar_matriz()
-    for _ in range(4):  # 4 animações são suficientes
-        animacao = gerar_matriz()
-        vis = "\n".join([" ".join(linha) for linha in animacao])
-        await mensagem.edit(content=f"🎰 | {ctx.author.mention} girando...\n```{vis}```")
-        await asyncio.sleep(0.6)
+    # SIMULAÇÃO DO GIRO COM 10 ATUALIZAÇÕES
+    for _ in range(10):
+        girando = f"🎰 [ {random.choice(bet_symbols)} | {random.choice(bet_symbols)} | {random.choice(bet_symbols)} ]"
+        await mensagem.edit(content=f"{ctx.author.mention} girando a roleta...\n\n```\n{girando}\n```")
+        await asyncio.sleep(0.3)
 
-    matriz, ganho_total = quebrar_e_drop(matriz)
-    vis_final = "\n".join([" ".join(linha) for linha in matriz])
+    # RESULTADO FINAL
+    slot1 = random.choice(bet_symbols)
+    slot2 = random.choice(bet_symbols)
+    slot3 = random.choice(bet_symbols)
 
-    data[user_id]["escolte"] += ganho_total
-    save_database(data)
+    final = f"""
+🎰 | {ctx.author.mention} girou a roleta!
 
-    resultado = f"""🎰 | {ctx.author.mention} terminou o giro:
-
+╔══ 🎲 SLOT MACHINE 🎲 ══╗
+║     {slot1}  |  {slot2}  |  {slot3}     ║
+╚══════════════════════╝
 """
-    if ganho_total > 0:
-        resultado += f"\n💸 Você ganhou **{ganho_total} escoltes**!"
+
+    if slot1 == slot2 == slot3:
+        ganho = 20
+        data[user_id]["escolte"] += ganho
+        final += f"\n💰 JACKPOT! Trinca perfeita! Você ganhou **{ganho} escoltes**!"
+    elif slot1 == slot2 or slot2 == slot3 or slot1 == slot3:
+        ganho = 10
+        data[user_id]["escolte"] += ganho
+        final += f"\n✨ Par encontrado! Você ganhou **{ganho} escoltes**!"
     else:
-        resultado += "\n😢 Nenhuma combinação suficiente para ganhar."
+        final += "\n😢 Nenhuma combinação. Tente novamente!"
 
-    resultado += f"\n💼 | Saldo atual: `{data[user_id]['escolte']}` escoltes."
+    final += f"\n\n💼 | Saldo atual: `{data[user_id]['escolte']}` escoltes."
 
-    await mensagem.edit(content=resultado)
-
+    save_database(data)
+    await mensagem.edit(content=final)
 
     # COMANDO ADMIN: ADICIONAR ESCOLTE
 @bot.command()
