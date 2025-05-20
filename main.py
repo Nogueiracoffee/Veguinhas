@@ -17,6 +17,15 @@ DB_FILE = "vegas_data.json"
 # SÍMBOLOS DO SLOT
 bet_symbols = ["🍒", "⏳", "⭐", "🍀", "💎", "♾️"]
 
+ganhos_por_simbolo = {
+        "🍒": (1, 7),
+        "⏳": (2, 8),
+        "⭐": (3, 9),
+        "🍀": (4, 10),
+        "💎": (5, 11),
+        "♾️": (6, 12)
+    }
+
 # FUNÇÃO: CARREGAR BANCO DE DADOS
 def load_database():
     if not os.path.exists(DB_FILE):
@@ -83,13 +92,18 @@ async def vegas(ctx):
 """
 
     if slot1 == slot2 == slot3:
-        ganho = 10
+        ganho = ganhos_por_simbolo[slot1][1]  # Trinca
         data[user_id]["escolte"] += ganho
-        final += f"\n💰 Parabéns Você ganhou **{ganho} escoltes**!"
+        final += f"\n💰 Você ganhou **{ganho} escoltes**!"
     elif slot1 == slot2 or slot2 == slot3 or slot1 == slot3:
-        ganho = 5
+        # Identifica o símbolo do par
+        if slot1 == slot2 or slot1 == slot3:
+            simbolo_par = slot1
+        else:
+            simbolo_par = slot2
+        ganho = ganhos_por_simbolo[simbolo_par][0]  # Par
         data[user_id]["escolte"] += ganho
-        final += f"\n✨ Par encontrado! Você ganhou **{ganho} escoltes**!"
+        final += f"\n✨ PAR encontrado ({simbolo_par}{simbolo_par})! Você ganhou **{ganho} escoltes**!"
     else:
         final += "\n😢 Nenhuma combinação. Tente novamente!"
 
@@ -97,6 +111,37 @@ async def vegas(ctx):
 
     save_database(data)
     await mensagem.edit(content=final)
+
+@bot.command()
+async def regras(ctx):
+    regras_texto = f"""
+🎰 **COMO FUNCIONA O SLOT VEGAS** 🎰
+
+**COMO JOGAR**
+Use `!vegas` para girar a roleta. Custa **2 escoltes** por rodada.
+
+**OBJETIVO**
+Tente conseguir 2 ou 3 símbolos iguais para ganhar mais escoltes.
+
+**VALORES POR SÍMBOLO**
+Cada símbolo tem um valor. Quanto mais vezes ele aparece, mais você ganha:
+
+🍒 = 1 🍒 = +1 | 2 🍒 = +2 | 3 🍒 = +7
+⏳ = 1 ⏳ = +2 | 2 ⏳ = +4 | 3 ⏳ = +8
+⭐ = 1 ⭐ = +3 | 2 ⭐ = +6 | 3 ⭐ = +9
+🍀 = 1 🍀 = +4 | 2 🍀 = +8 | 3 🍀 = +10
+💎 = 1 💎 = +5 | 2 💎 = +10 | 3 💎 = +11
+♾️ = 1 ♾️ = +6 | 2 ♾️ = +12 | 3 ♾️ = +12
+
+
+**REGRAS**
+- Começa com 0 escoltes.
+- Precisa ter **pelo menos 2 escoltes** pra jogar.
+- Admins podem dar escoltes com `!addescolte`.
+
+Boa sorte, {ctx.author.mention}! 🍀
+"""
+    await ctx.send(regras_texto)
 
     # COMANDO ADMIN: ADICIONAR ESCOLTE
 @bot.command()
