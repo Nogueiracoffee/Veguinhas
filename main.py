@@ -126,18 +126,16 @@ Tente conseguir 2 ou 3 símbolos iguais para ganhar mais escoltes.
 **VALORES POR SÍMBOLO**
 Cada símbolo tem um valor. Quanto mais vezes ele aparece, mais você ganha:
 
-🍒 = 1 🍒 = +1 | 2 🍒 = +2 | 3 🍒 = +7
-⏳ = 1 ⏳ = +2 | 2 ⏳ = +4 | 3 ⏳ = +8
-⭐ = 1 ⭐ = +3 | 2 ⭐ = +6 | 3 ⭐ = +9
-🍀 = 1 🍀 = +4 | 2 🍀 = +8 | 3 🍀 = +10
-💎 = 1 💎 = +5 | 2 💎 = +10 | 3 💎 = +11
-♾️ = 1 ♾️ = +6 | 2 ♾️ = +12 | 3 ♾️ = +12
+🍒 = 0 | 🍒🍒 = +1 | 🍒🍒🍒 = +7  
+⏳ = 0 | ⏳⏳ = +2 | ⏳⏳⏳ = +8  
+⭐ = 0 | ⭐⭐ = +3 | ⭐⭐⭐ = +9  
+🍀 = 0 | 🍀🍀 = +4 | 🍀🍀🍀 = +10  
+💎 = 0 | 💎💎 = +5 | 💎💎💎 = +11  
+♾️ = 0 | ♾️♾️ = +6 | ♾️♾️♾️ = +12
 
 
 **REGRAS**
-- Começa com 0 escoltes.
 - Precisa ter **pelo menos 2 escoltes** pra jogar.
-- Admins podem dar escoltes com `!addescolte`.
 
 Boa sorte, {ctx.author.mention}! 🍀
 """
