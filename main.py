@@ -3,6 +3,7 @@ from discord.ext import commands
 import random
 import json
 import os
+import asyncio
 
 # CONFIGURAÇÃO DO BOT
 intents = discord.Intents.default()
@@ -14,7 +15,7 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 DB_FILE = "vegas_data.json"
 
 # SÍMBOLOS DO SLOT
-bet_symbols = ["🐸", "🐵", "🐰", "🦊", "🐻", "🐼"]
+bet_symbols = ["🍒", "🔔", "🍋", "💎", "🍇", "⭐", "7️⃣"]
 
 # FUNÇÃO: CARREGAR BANCO DE DADOS
 def load_database():
@@ -36,7 +37,7 @@ async def vegas(ctx):
     user_name = ctx.author.name
     data = load_database()
 
-    # REGISTRA USUÁRIO NOVO COM 0 ESCOLTES
+    # REGISTRA USUÁRIO NOVO
     if user_id not in data:
         data[user_id] = {
             "nome": user_name,
@@ -54,40 +55,48 @@ async def vegas(ctx):
 
     # COBRA 3 ESCOLTES
     data[user_id]["escolte"] -= 3
+    save_database(data)
 
-    # GIRA SLOT
+    # INÍCIO DA ANIMAÇÃO
+    rodando = ["🔄", "🔃", "🔁"]
+    mensagem = await ctx.send(f"🎰 | {ctx.author.mention} puxou a alavanca...\n\n```\n🎰 [🔄 | 🔄 | 🔄]\n```")
+
+    # SIMULAÇÃO DO GIRO COM 10 ATUALIZAÇÕES
+    for _ in range(10):
+        girando = f"🎰 [ {random.choice(bet_symbols)} | {random.choice(bet_symbols)} | {random.choice(bet_symbols)} ]"
+        await mensagem.edit(content=f"{ctx.author.mention} girando a roleta...\n\n```\n{girando}\n```")
+        await asyncio.sleep(0.3)
+
+    # RESULTADO FINAL
     slot1 = random.choice(bet_symbols)
     slot2 = random.choice(bet_symbols)
     slot3 = random.choice(bet_symbols)
 
-    resultado = f"""
-🎰 | {ctx.author.mention}, você girou a roleta:
+    final = f"""
+🎰 | {ctx.author.mention} girou a roleta!
 
-┌──────────────┐
-│ {slot1} │ {slot2} │ {slot3} │
-└──────────────┘
+╔══ 🎲 SLOT MACHINE 🎲 ══╗
+║     {slot1}  |  {slot2}  |  {slot3}     ║
+╚══════════════════════╝
 """
 
-    # CALCULA GANHOS
     if slot1 == slot2 == slot3:
+        ganho = 20
+        data[user_id]["escolte"] += ganho
+        final += f"\n💰 JACKPOT! Trinca perfeita! Você ganhou **{ganho} escoltes**!"
+    elif slot1 == slot2 or slot2 == slot3 or slot1 == slot3:
         ganho = 10
         data[user_id]["escolte"] += ganho
-        resultado += f"\n💰 | Trinca! Você ganhou **{ganho} escoltes**!"
-    elif slot1 == slot2 or slot2 == slot3 or slot1 == slot3:
-        ganho = 5
-        data[user_id]["escolte"] += ganho
-        resultado += f"\n✨ | Par! Você ganhou **{ganho} escoltes**!"
+        final += f"\n✨ Par encontrado! Você ganhou **{ganho} escoltes**!"
     else:
-        resultado += "\n😢 | Nenhuma combinação. Melhor sorte na próxima!"
+        final += "\n😢 Nenhuma combinação. Tente novamente!"
 
-    # MOSTRA SALDO FINAL
-    resultado += f"\n💼 | Saldo atual: `{data[user_id]['escolte']}` escoltes."
+    final += f"\n\n💼 | Saldo atual: `{data[user_id]['escolte']}` escoltes."
 
-    # SALVA DADOS
     save_database(data)
-    await ctx.send(resultado)
+    await mensagem.edit(content=final)
 
-# COMANDO ADMIN: ADICIONAR ESCOLTE
+    # COMANDO ADMIN: ADICIONAR ESCOLTE
 @bot.command()
 @commands.has_permissions(administrator=True)
 async def addescolte(ctx, member: discord.Member, valor: int):
@@ -114,5 +123,3 @@ async def addescolte_error(ctx, error):
 
 # INICIAR BOT
 bot.run('MTMzMDM4NTEzNTkzMzMyNTM3Mw.Gx9HJU.2cuRPgW7ZYRjLqgk9-1iEfftdvzXgsQhof-2RE')
-
-
