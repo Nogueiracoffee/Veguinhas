@@ -74,6 +74,8 @@ async def vegas(ctx):
 
     final = f"""
 🎰 | {ctx.author.mention} girou a roleta!
+
+```fix
 ╔══════════════════╗
 ║  {slot1}  |  {slot2}  |  {slot3}  ║
 ╚══════════════════╝
