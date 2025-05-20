@@ -15,7 +15,7 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 DB_FILE = "vegas_data.json"
 
 # SÍMBOLOS DO SLOT
-bet_symbols = ["🍒", "⏳", "☕", "🍀", "💎", "♾️"]
+bet_symbols = ["🍒", "⏳", "⭐", "🍀", "💎", "♾️"]
 
 # FUNÇÃO: CARREGAR BANCO DE DADOS
 def load_database():
@@ -49,12 +49,12 @@ async def vegas(ctx):
 
     # VERIFICA SALDO
     saldo = data[user_id]["escolte"]
-    if saldo < 3:
-        await ctx.send(f"❌ | {ctx.author.mention}, você precisa de pelo menos **3 escoltes** para jogar. Seu saldo atual: `{saldo}`.")
+    if saldo < 2:
+        await ctx.send(f"❌ | {ctx.author.mention}, você precisa de pelo menos **2 escoltes** para jogar. Seu saldo atual: `{saldo}`.")
         return
 
-    # COBRA 3 ESCOLTES
-    data[user_id]["escolte"] -= 3
+    # COBRA 2 ESCOLTES
+    data[user_id]["escolte"] -= 2
     save_database(data)
 
     # INÍCIO DA ANIMAÇÃO
@@ -62,7 +62,7 @@ async def vegas(ctx):
     mensagem = await ctx.send(f"🎰 | {ctx.author.mention} puxou a alavanca...\n\n```\n🎰 [🔄 | 🔄 | 🔄]\n```")
 
     # SIMULAÇÃO DO GIRO COM 10 ATUALIZAÇÕES
-    for _ in range(10):
+    for _ in range(5):
         girando = f"🎰 [ {random.choice(bet_symbols)} | {random.choice(bet_symbols)} | {random.choice(bet_symbols)} ]"
         await mensagem.edit(content=f"{ctx.author.mention} girando a roleta...\n\n```\n{girando}\n```")
         await asyncio.sleep(0.3)
@@ -76,16 +76,16 @@ async def vegas(ctx):
 🎰 | {ctx.author.mention} girou a roleta!
 
 ╔══ 🎲 SLOT MACHINE 🎲 ══╗
-║     {slot1}  |  {slot2}  |  {slot3}     ║
-╚══════════════════════╝
+║     {slot1}  |  {slot2}  |  {slot3}        ║
+╚══════════════════╝
 """
 
     if slot1 == slot2 == slot3:
-        ganho = 20
-        data[user_id]["escolte"] += ganho
-        final += f"\n💰 JACKPOT! Trinca perfeita! Você ganhou **{ganho} escoltes**!"
-    elif slot1 == slot2 or slot2 == slot3 or slot1 == slot3:
         ganho = 10
+        data[user_id]["escolte"] += ganho
+        final += f"\n💰 Parabéns Você ganhou **{ganho} escoltes**!"
+    elif slot1 == slot2 or slot2 == slot3 or slot1 == slot3:
+        ganho = 5
         data[user_id]["escolte"] += ganho
         final += f"\n✨ Par encontrado! Você ganhou **{ganho} escoltes**!"
     else:
