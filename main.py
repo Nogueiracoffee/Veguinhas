@@ -16,7 +16,7 @@ DB_FILE = "vegas_data.json"
 
 # EMOJIS E PESOS
 EMOJIS = ["🍒", "⏳", "☕", "🍀", "💎", "♾️"]
-PESOS = [40, 25, 15, 10, 7, 3]  # Frequência
+PESOS = [40, 25, 15, 10, 7, 3]  # Frequência dos emojis
 VALORES = {
     "🍒": 1,
     "⏳": 2,
@@ -26,8 +26,7 @@ VALORES = {
     "♾️": 10
 }
 
-# DB
-
+# DATABASE
 def load_database():
     if not os.path.exists(DB_FILE):
         with open(DB_FILE, "w") as f:
@@ -39,11 +38,11 @@ def save_database(data):
     with open(DB_FILE, "w") as f:
         json.dump(data, f, indent=4)
 
-# FUNÇÕES
-
+# GERA MATRIZ 4x4
 def gerar_matriz():
     return [[random.choices(EMOJIS, PESOS)[0] for _ in range(4)] for _ in range(4)]
 
+# CONTA OCORRÊNCIA DE EMOJIS
 def contar_emojis(matriz):
     contagem = {}
     for linha in matriz:
@@ -51,6 +50,7 @@ def contar_emojis(matriz):
             contagem[emoji] = contagem.get(emoji, 0) + 1
     return contagem
 
+# QUEBRA EMOJIS E FAZ DROPAR
 def quebrar_e_drop(matriz):
     ganhos = 0
     alterado = True
@@ -62,14 +62,14 @@ def quebrar_e_drop(matriz):
             alterado = False
             break
 
-        # Remove os emojis a serem quebrados e soma ganhos
+        # Quebra os emojis e soma ganhos
         for i in range(4):
             for j in range(4):
                 if matriz[i][j] in quebrar:
                     ganhos += VALORES[matriz[i][j]]
                     matriz[i][j] = None
 
-        # Drop
+        # Dropa os emojis (substitui os quebrados)
         for col in range(4):
             nova_coluna = [matriz[linha][col] for linha in range(4) if matriz[linha][col] is not None]
             faltam = 4 - len(nova_coluna)
@@ -80,8 +80,7 @@ def quebrar_e_drop(matriz):
 
     return matriz, ganhos
 
-# COMANDO
-
+# COMANDO PRINCIPAL
 @bot.command()
 async def vegas(ctx):
     user_id = str(ctx.author.id)
@@ -95,7 +94,7 @@ async def vegas(ctx):
         return
 
     saldo = data[user_id]["escolte"]
-    if saldo < 2:
+    if saldo < 3:
         await ctx.send(f"❌ | {ctx.author.mention}, você precisa de pelo menos 3 escoltes. Saldo: `{saldo}`")
         return
 
@@ -105,14 +104,11 @@ async def vegas(ctx):
     mensagem = await ctx.send(f"🎰 | {ctx.author.mention} puxou a alavanca...")
 
     matriz = gerar_matriz()
-    for _ in range(6):
+    for _ in range(4):  # 4 animações são suficientes
         animacao = gerar_matriz()
         vis = "\n".join([" ".join(linha) for linha in animacao])
-        await mensagem.edit(content=f"🎰 | {ctx.author.mention} girando...
-```
-{vis}
-```")
-        await asyncio.sleep(0.3)
+        await mensagem.edit(content=f"🎰 | {ctx.author.mention} girando...\n```{vis}```")
+        await asyncio.sleep(0.6)
 
     matriz, ganho_total = quebrar_e_drop(matriz)
     vis_final = "\n".join([" ".join(linha) for linha in matriz])
@@ -120,20 +116,18 @@ async def vegas(ctx):
     data[user_id]["escolte"] += ganho_total
     save_database(data)
 
-    resultado = f"🎰 | {ctx.author.mention} terminou o giro:
-```
-{vis_final}
-```
-"
-    if ganho_total > 0:
-        resultado += f"💸 Você ganhou **{ganho_total} escoltes**!
-"
-    else:
-        resultado += "😢 Nenhuma combinação suficiente para ganhar.
-"
+    resultado = f"""🎰 | {ctx.author.mention} terminou o giro:
 
-    resultado += f"💼 | Saldo atual: `{data[user_id]['escolte']}` escoltes."
+"""
+    if ganho_total > 0:
+        resultado += f"\n💸 Você ganhou **{ganho_total} escoltes**!"
+    else:
+        resultado += "\n😢 Nenhuma combinação suficiente para ganhar."
+
+    resultado += f"\n💼 | Saldo atual: `{data[user_id]['escolte']}` escoltes."
+
     await mensagem.edit(content=resultado)
+
 
     # COMANDO ADMIN: ADICIONAR ESCOLTE
 @bot.command()
