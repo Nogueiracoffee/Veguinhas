@@ -18,12 +18,12 @@ DB_FILE = "vegas_data.json"
 bet_symbols = ["🍒", "⏳", "⭐", "🍀", "💎", "♾️"]
 
 ganhos_por_simbolo = {
-        "🍒": (1, 7),
-        "⏳": (2, 8),
-        "⭐": (3, 9),
-        "🍀": (4, 10),
-        "💎": (5, 11),
-        "♾️": (6, 12)
+        "🍒": (1, 4),
+        "⏳": (2, 5),
+        "⭐": (2, 6),
+        "🍀": (2, 7),
+        "💎": (3, 8),
+        "♾️": (4, 10)
     }
 
 # FUNÇÃO: CARREGAR BANCO DE DADOS
@@ -126,18 +126,18 @@ Tente conseguir 2 ou 3 símbolos iguais para ganhar mais escoltes.
 **VALORES POR SÍMBOLO**
 Cada símbolo tem um valor. Quanto mais vezes ele aparece, mais você ganha:
 
-🍒 = 0 | 🍒🍒 = +1 | 🍒🍒🍒 = +7  
-⏳ = 0 | ⏳⏳ = +2 | ⏳⏳⏳ = +8  
-⭐ = 0 | ⭐⭐ = +3 | ⭐⭐⭐ = +9  
-🍀 = 0 | 🍀🍀 = +4 | 🍀🍀🍀 = +10  
-💎 = 0 | 💎💎 = +5 | 💎💎💎 = +11  
-♾️ = 0 | ♾️♾️ = +6 | ♾️♾️♾️ = +12
+🍒🍒 = +1 | 🍒🍒🍒 = +4  
+⏳⏳ = +2 | ⏳⏳⏳ = +5  
+⭐⭐ = +2 | ⭐⭐⭐ = +6  
+🍀🍀 = +2 | 🍀🍀🍀 = +7  
+💎💎 = +3 | 💎💎💎 = +8  
+♾️♾️ = +4 | ♾️♾️♾️ = +10
 
 
 **REGRAS**
 - Precisa ter **pelo menos 2 escoltes** pra jogar.
 
-Boa sorte, {ctx.author.mention}! 🍀
+Boa sorte! 🍀
 """
     await ctx.send(regras_texto)
 
