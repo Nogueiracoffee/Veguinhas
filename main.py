@@ -172,4 +172,5 @@ async def falar(ctx, *, mensagem):
     await ctx.send(mensagem)
 
 # INICIAR BOT
-bot.run('MTMzMDM4NTEzNTkzMzMyNTM3Mw.GoVK_v.CnfACYOfzzuaSfRZ0Hoza7rdEQCPunvtfXzdu0')
+TOKEN = os.getenv('DISCORD_TOKEN')
+bot.run(TOKEN)
