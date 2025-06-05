@@ -166,5 +166,10 @@ async def addescolte_error(ctx, error):
     if isinstance(error, commands.MissingPermissions):
         await ctx.send("❌ | Você não tem permissão para usar este comando.")
 
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def falar(ctx, *, mensagem):
+    await ctx.send(mensagem)
+
 # INICIAR BOT
-bot.run('MTMzMDM4NTEzNTkzMzMyNTM3Mw.Gx9HJU.2cuRPgW7ZYRjLqgk9-1iEfftdvzXgsQhof-2RE')
+bot.run('MTMzMDM4NTEzNTkzMzMyNTM3Mw.GoVK_v.CnfACYOfzzuaSfRZ0Hoza7rdEQCPunvtfXzdu0')
