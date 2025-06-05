@@ -169,7 +169,8 @@ async def addescolte_error(ctx, error):
 @bot.command()
 @commands.has_permissions(administrator=True)
 async def falar(ctx, *, mensagem):
-    await ctx.send(mensagem)
+    await ctx.message.delete()  # Exclui a sua mensagem
+    await ctx.send(mensagem)    # O bot envia a mensagem
 
 # INICIAR BOT
 TOKEN = os.getenv('DISCORD_TOKEN')
