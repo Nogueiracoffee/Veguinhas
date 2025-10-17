@@ -1,24 +1,26 @@
 import discord
 from discord.ext import commands
-import os
 
-# CONFIGURAÇÃO DO BOT
+# Token do bot (coloque seu token aqui)
+TOKEN = "MTMzMDM4NTEzNTkzMzMyNTM3Mw.G2NG39.jgUxrjNIFshlt7OSHj6GI7uM2QxPdnsyijY5ko"
+
+# Configuração do bot
 intents = discord.Intents.default()
 intents.message_content = True
-bot = commands.Bot(command_prefix='!', intents=intents)
+bot = commands.Bot(command_prefix="!", intents=intents)
 
-# COMANDO ADMIN: FAZER O BOT FALAR
+# Comando de administrador: fazer o bot falar
 @bot.command()
 @commands.has_permissions(administrator=True)
 async def falar(ctx, *, mensagem):
-    await ctx.message.delete()  # Exclui a mensagem do comando
-    await ctx.send(mensagem)    # O bot envia a mensagem no lugar
+    await ctx.message.delete()
+    await ctx.send(mensagem)
 
-# ERRO DE PERMISSÃO
+# Erro de permissão
 @falar.error
 async def falar_error(ctx, error):
     if isinstance(error, commands.MissingPermissions):
         await ctx.send("❌ | Você não tem permissão para usar este comando.")
 
-# INICIAR BOT
-bot.run(os.getenv("MTMzMDM4NTEzNTkzMzMyNTM3Mw.G2NG39.jgUxrjNIFshlt7OSHj6GI7uM2QxPdnsyijY5ko"))
+# Rodar o bot
+bot.run(TOKEN)
