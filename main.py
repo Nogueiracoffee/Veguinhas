@@ -39,8 +39,7 @@ async def on_ready():
 # --- Função auxiliar para gerar resposta da Gemini ---
 def gerar_resposta_sync(prompt):
     try:
-        resposta = genai.generate_text(
-            model="gemini-1.5-flash",
+        resposta = genai.TextGeneration(model="gemini-1.5-flash").generate(
             prompt=prompt,
             temperature=0.7,
             max_output_tokens=300
