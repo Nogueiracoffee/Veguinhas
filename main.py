@@ -22,4 +22,4 @@ async def falar_error(ctx, error):
 
 # INICIAR BOT
 TOKEN = os.getenv('DISCORD_TOKEN')
-bot.run(MTMzMDM4NTEzNTkzMzMyNTM3Mw.G_HZOA.8GOZI3IFInYm5-Ep9IRaQAfBty20QrLBgw6hSI)
+bot.run("MTMzMDM4NTEzNTkzMzMyNTM3Mw.G_HZOA.8GOZI3IFInYm5-Ep9IRaQAfBty20QrLBgw6hSI")
