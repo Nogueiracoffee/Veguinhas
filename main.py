@@ -4,6 +4,7 @@ from discord.ext import commands
 from flask import Flask
 from threading import Thread
 import google.generativeai as genai
+import asyncio
 
 # --- Servidor web para Koyeb ---
 app = Flask('')
@@ -36,7 +37,7 @@ async def on_ready():
     await bot.change_presence(activity=discord.Game(name="com a galera em Vegas ☕"))
 
 # --- Função auxiliar para gerar resposta da Gemini ---
-def gerar_resposta(prompt):
+def gerar_resposta_sync(prompt):
     try:
         resposta = genai.generate_text(
             model="gemini-1.5-flash",
@@ -49,12 +50,15 @@ def gerar_resposta(prompt):
         print(f"Erro Gemini: {e}")
         return "Ops! Tive um problema pra responder, tenta de novo ☕"
 
+async def gerar_resposta(prompt):
+    return await asyncio.to_thread(gerar_resposta_sync, prompt)
+
 # --- Comando !ia: conversa com IA ---
 @bot.command()
 async def ia(ctx, *, pergunta):
     await ctx.channel.typing()
     prompt = f"Você é Veguinhas, bot simpático e criativo da comunidade Vegas Machine. Fale com naturalidade e humor leve.\nUsuário: {pergunta}"
-    resposta_texto = gerar_resposta(prompt)
+    resposta_texto = await gerar_resposta(prompt)
     await ctx.send(resposta_texto)
 
 # --- Comando !falar: bot fala a mensagem enviada ---
@@ -78,7 +82,7 @@ async def on_message(message):
             return
 
         prompt = f"Você é Veguinhas, o bot oficial da Vegas Machine. Fale de forma criativa, leve e com personalidade.\nUsuário: {texto_usuario}"
-        resposta_texto = gerar_resposta(prompt)
+        resposta_texto = await gerar_resposta(prompt)
         await message.reply(resposta_texto)
 
     await bot.process_commands(message)
