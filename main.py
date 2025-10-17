@@ -4,7 +4,11 @@ from discord.ext import commands
 
 TOKEN = os.getenv("DISCORD_TOKEN")
 
-bot = commands.Bot(command_prefix="!")
+intents = discord.Intents.default()
+intents.messages = True  # necessário para ler mensagens
+intents.message_content = True  # necessário para acessar o conteúdo das mensagens
+
+bot = commands.Bot(command_prefix="!", intents=intents)
 
 @bot.event
 async def on_ready():
