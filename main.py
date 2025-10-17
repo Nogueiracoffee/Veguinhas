@@ -21,7 +21,7 @@ Thread(target=run, daemon=True).start()
 
 # --- Configuração principal ---
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
-GEMINI_KEY = os.getenv("GEMINI_API_KEY")  # chave da Gemini
+GEMINI_KEY = os.getenv("GEMINI_API_KEY")
 
 genai.configure(api_key=GEMINI_KEY)  # inicializa Gemini
 
@@ -39,12 +39,16 @@ async def on_ready():
 # --- Função auxiliar para gerar resposta da Gemini ---
 def gerar_resposta_sync(prompt):
     try:
-        resposta = genai.TextGeneration(model="gemini-1.5-flash").generate(
-            prompt=prompt,
+        resposta = genai.chat.completions.create(
+            model="gemini-1.5",
+            messages=[
+                {"role": "system", "content": "Você é Veguinhas, bot simpático e criativo da comunidade Vegas Machine. Fale com naturalidade e humor leve."},
+                {"role": "user", "content": prompt}
+            ],
             temperature=0.7,
             max_output_tokens=300
         )
-        return resposta.text
+        return resposta.choices[0].content[0].text
     except Exception as e:
         print(f"Erro Gemini: {e}")
         return "Ops! Tive um problema pra responder, tenta de novo ☕"
@@ -52,15 +56,14 @@ def gerar_resposta_sync(prompt):
 async def gerar_resposta(prompt):
     return await asyncio.to_thread(gerar_resposta_sync, prompt)
 
-# --- Comando !ia: conversa com IA ---
+# --- Comando !ia ---
 @bot.command()
 async def ia(ctx, *, pergunta):
     await ctx.channel.typing()
-    prompt = f"Você é Veguinhas, bot simpático e criativo da comunidade Vegas Machine. Fale com naturalidade e humor leve.\nUsuário: {pergunta}"
-    resposta_texto = await gerar_resposta(prompt)
+    resposta_texto = await gerar_resposta(pergunta)
     await ctx.send(resposta_texto)
 
-# --- Comando !falar: bot fala a mensagem enviada ---
+# --- Comando !falar ---
 @bot.command()
 async def falar(ctx, *, mensagem):
     await ctx.message.delete()
@@ -80,8 +83,7 @@ async def on_message(message):
             await message.reply("opa ☕ me chamou pra conversar?")
             return
 
-        prompt = f"Você é Veguinhas, o bot oficial da Vegas Machine. Fale de forma criativa, leve e com personalidade.\nUsuário: {texto_usuario}"
-        resposta_texto = await gerar_resposta(prompt)
+        resposta_texto = await gerar_resposta(texto_usuario)
         await message.reply(resposta_texto)
 
     await bot.process_commands(message)
