@@ -1,12 +1,25 @@
 import os
 import discord
 from discord.ext import commands
+import threading
+import http.server
+import socketserver
+
+# --- Servidor para manter o app "vivo" no Koyeb ---
+def keep_alive():
+    handler = http.server.SimpleHTTPRequestHandler
+    with socketserver.TCPServer(("", 8000), handler) as httpd:
+        print("Servidor keep-alive rodando na porta 8000")
+        httpd.serve_forever()
+
+threading.Thread(target=keep_alive, daemon=True).start()
+# ---------------------------------------------------
 
 TOKEN = os.getenv("DISCORD_TOKEN")
 
 intents = discord.Intents.default()
-intents.messages = True  # necessário para ler mensagens
-intents.message_content = True  # necessário para acessar o conteúdo das mensagens
+intents.messages = True
+intents.message_content = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
@@ -16,10 +29,7 @@ async def on_ready():
 
 @bot.command()
 async def falar(ctx, *, mensagem):
-    # Apaga a mensagem original
     await ctx.message.delete()
-
-    # Bot envia a mensagem
     await ctx.send(mensagem)
 
 bot.run(TOKEN)
