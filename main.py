@@ -6,7 +6,7 @@ from discord.ext import commands
 # =========================
 
 # Coloque seu token do bot aqui (token do bot, não do usuário)
-TOKEN = "MTMzMDM4NTEzNTkzMzMyNTM3Mw.G2NG39.jgUxrjNIFshlt7OSHj6GI7uM2QxPdnsyijY5ko"
+TOKEN = "MTMzMDM4NTEzNTkzMzMyNTM3Mw.G4zIF2.ly-UK7bew9TRYsbHP7wraXym3QM8q2sWZttDKU"
 
 # Configuração de intents
 intents = discord.Intents.default()
