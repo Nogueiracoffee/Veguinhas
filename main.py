@@ -44,7 +44,8 @@ def gerar_resposta_sync(prompt):
     try:
         chat = model.start_chat(
             history=[
-                {"role": "user", "parts": "Você é Veguinhas, bot simpático e criativo da comunidade Vegas Machine. Fale com naturalidade e humor leve."}
+                {"role": "user", "parts": "Você é Veguinhas, um bot simpático e direto. Responda de forma curta, natural e casual. Evite repetir sobre a Vegas Machine; foque no que o usuário perguntar.
+"}
             ]
         )
         resposta = chat.send_message(prompt)
