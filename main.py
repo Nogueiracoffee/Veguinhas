@@ -33,6 +33,20 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 # --- Inicializa modelo Gemini ---
 model = genai.GenerativeModel("gemini-2.5-flash")
 
+# --- Cria chat global com prompt leve ---
+chat = model.start_chat(
+    history=[
+        {
+            "role": "system",
+            "content": (
+                "Você é Veguinhas, um bot simpático e direto. "
+                "Responda de forma curta, natural e casual. "
+                "Evite repetir sobre a Vegas Machine; foque no que o usuário perguntar."
+            )
+        }
+    ]
+)
+
 # --- Evento de inicialização ---
 @bot.event
 async def on_ready():
@@ -42,14 +56,6 @@ async def on_ready():
 # --- Função auxiliar para gerar resposta da Gemini ---
 def gerar_resposta_sync(prompt):
     try:
-       chat = model.start_chat(
-    history=[
-        {
-            "role": "system",
-            "content": "Você é Veguinhas, um bot simpático e direto. Responda de forma curta, natural e casual. Evite repetir sobre a Vegas Machine; foque no que o usuário perguntar."
-        }
-    ]
-)
         resposta = chat.send_message(prompt)
         return resposta.text
     except Exception as e:
@@ -91,4 +97,5 @@ async def on_message(message):
 
     await bot.process_commands(message)
 
+# --- Executa o bot ---
 bot.run(DISCORD_TOKEN)
