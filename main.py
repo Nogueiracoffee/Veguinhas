@@ -23,12 +23,15 @@ Thread(target=run, daemon=True).start()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 GEMINI_KEY = os.getenv("GEMINI_API_KEY")
 
-genai.configure(api_key=GEMINI_KEY)  # inicializa Gemini
+genai.configure(api_key=GEMINI_KEY)
 
 intents = discord.Intents.default()
 intents.message_content = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
+
+# --- Inicializa modelo Gemini ---
+model = genai.GenerativeModel("gemini-1.5-flash")
 
 # --- Evento de inicialização ---
 @bot.event
@@ -39,16 +42,13 @@ async def on_ready():
 # --- Função auxiliar para gerar resposta da Gemini ---
 def gerar_resposta_sync(prompt):
     try:
-        resposta = genai.chat.completions.create(
-            model="gemini-1.5",
-            messages=[
-                {"role": "system", "content": "Você é Veguinhas, bot simpático e criativo da comunidade Vegas Machine. Fale com naturalidade e humor leve."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7,
-            max_output_tokens=300
+        chat = model.start_chat(
+            history=[
+                {"role": "user", "parts": "Você é Veguinhas, bot simpático e criativo da comunidade Vegas Machine. Fale com naturalidade e humor leve."}
+            ]
         )
-        return resposta.choices[0].content[0].text
+        resposta = chat.send_message(prompt)
+        return resposta.text
     except Exception as e:
         print(f"Erro Gemini: {e}")
         return "Ops! Tive um problema pra responder, tenta de novo ☕"
